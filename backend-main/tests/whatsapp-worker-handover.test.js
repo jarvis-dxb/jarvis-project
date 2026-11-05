@@ -7,6 +7,7 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { acquireWorkerLease } from '../src/whatsapp/worker-lease.js';
+import { mediaRendererIdentity } from '../src/whatsapp/render-svg.js';
 
 const media = { engine: 'outlined-glyphs-v3', build: 'c300159ba2a09df6' };
 function fixture(filename = ':memory:') {
@@ -202,8 +203,10 @@ test('the actual updated worker replaces a legacy process and publishes the vect
     const db = new DatabaseSync(filename);
     try {
         const actual = read(db, 'worker');
-        assert.equal(actual.media.engine, media.engine);
-        assert.equal(actual.media.build, media.build);
+        const expected = mediaRendererIdentity();
+        assert.notEqual(expected.build, 'unavailable');
+        assert.equal(actual.media.engine, expected.engine);
+        assert.equal(actual.media.build, expected.build);
         assert.ok(stages.includes('handover-waiting'));
         assert.ok(stages.includes('handover-complete'));
         assert.equal(db.prepare('SELECT count(*) AS n FROM jarvis_wa_connections').get().n, 0);
