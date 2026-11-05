@@ -1,0 +1,1 @@
+import{d as t,bY as n}from"./vendor-BlY1NUUU.js";const i={margin:50,leverage:10,showCharts:!0,guidedSetup:!0},c=t()(n(r=>({...i,savePreferences:e=>r(e),setShowCharts:e=>r({showCharts:e})}),{name:"jarvis-trading-preferences",partialize:({margin:r,leverage:e,showCharts:s,guidedSetup:a})=>({margin:r,leverage:e,showCharts:s,guidedSetup:a})}));export{i as d,c as u};

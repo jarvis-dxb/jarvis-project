@@ -1,0 +1,1 @@
+import{j as t,bP as o,bQ as s,bR as a}from"./vendor-BlY1NUUU.js";function i({...l}){return t.jsx(o,{"data-slot":"collapsible",...l})}function n({...l}){return t.jsx(s,{"data-slot":"collapsible-trigger",...l})}function r({...l}){return t.jsx(a,{"data-slot":"collapsible-content",...l})}export{i as C,n as a,r as b};
