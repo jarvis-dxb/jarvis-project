@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { randomBytes } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+const [originArg,email]=process.argv.slice(2);
+if(!originArg||!email)throw Error('Usage: node scripts/setup-env.mjs https://YOUR-HOSTINGER-URL your-email@example.com');
+const origin=new URL(originArg);if(origin.protocol!=='https:'||origin.pathname!=='/'||origin.search||origin.hash)throw Error('Use an HTTPS origin without a path');
+if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw Error('Use a valid email');
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),target=path.join(root,'HOSTINGER-ENV.private.txt');
+const secret=randomBytes(48).toString('base64url'),password=randomBytes(24).toString('base64url');
+const data=`APP_ENV=production\nNODE_ENV=production\nAPP_ORIGIN=${origin.origin}\nJARVIS_INSTANCE=jarvis-test\nAUTH_SECRET=${secret}\nENCRYPTION_KEY=${randomBytes(16).toString('hex')}\nENCRYPTION_IV=${randomBytes(8).toString('hex')}\nSEED_DEMO_USER=true\nDEMO_USER_NAME=Jarvis Test User\nDEMO_USER_EMAIL=${email}\nDEMO_USER_PASSWORD=${password}\nALLOW_REGISTRATION=false\nWATCHER_ENABLED=false\nWATCHER_SYNC_GITHUB=false\nWA_WORKER_ENABLED=true\nTZ=Asia/Dubai\n`;
+fs.writeFileSync(target,data,{flag:'wx',mode:0o600});
+console.log('Created HOSTINGER-ENV.private.txt. Copy these values to hPanel Environment Variables. Your generated login password is DEMO_USER_PASSWORD. Do not upload this file or share it in chat.');

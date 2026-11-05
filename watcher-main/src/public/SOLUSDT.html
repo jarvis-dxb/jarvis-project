@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>BINANCE:SOLUSDT.P</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0" />
+
+	<style>
+		/* .tv-wrapper {
+			cursor: not-allowed !important;
+			z-index: 99999999999 !important;
+			opacity: 0.7 !important;
+		}
+
+		#tv_chart_container {
+			pointer-events: none !important;
+			user-select: none !important;
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+			-o-user-select: none;
+		} */
+	</style>
+
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
+	<script type="text/javascript"
+		src="https://cdn.jsdelivr.net/gh/mohd7469/chart@main/3/webapp/charting_library/charting_library.standalone.js"></script>
+	<script type="text/javascript"
+		src="https://cdn.jsdelivr.net/gh/mohd7469/chart@main/3/webapp/charting_library/external-embedding/embed-widget-tradingview-datafeed.js"></script>
+	<script type="text/javascript"
+		src="https://cdn.jsdelivr.net/gh/mohd7469/chart@main/3/webapp/charting_library/broker-sample/dist/bundle.js"></script>
+	<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+
+	<script type="module">
+		import { availableIndicators, availableIntervals, disabledFeatures } from 'https://cdn.jsdelivr.net/gh/mohd7469/chart@main/3/webapp/symbols/config.js';
+
+		window.isAutoSwitchEnabled = true;
+		window.TVConfig = {
+			candleRange: 5,
+			symbols: [
+				...availableIntervals.map(tf => ({
+					symbol: 'BINANCE:SOLUSDT.P',
+					chartType: 'candles',
+					interval: tf,
+					indicators: availableIndicators
+				})),
+			],
+			disabledFeatures: disabledFeatures
+		}
+	</script>
+
+	<!-- <script type="text/javascript">
+		const socket = io('http://localhost:5000', {
+			transports: ['websocket'], // For better performance
+		});
+
+		socket.on('TVSymbolsUpdates', (symbols) => {
+			console.log('[Socket] TVSymbolsUpdates received:', symbols);
+
+			if (symbols && symbols.length > 0) {
+				window.TVConfig.symbols = symbols;
+			}
+		});
+
+		socket.on('connect', () => console.log('[Socket] Connected to backend'));
+		socket.on('disconnect', () => console.warn('[Socket] Disconnected from backend'));
+	</script> -->
+
+	<script type="module">
+		if (!window.alertSound) {
+			window.alertSound = null;
+		}
+
+		window.getOrCreateOverlay = () => {
+			let overlay = document.getElementById('alert-click-overlay');
+			if (!overlay) {
+				overlay = document.createElement('div');
+				overlay.id = 'alert-click-overlay';
+				overlay.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999999999; cursor: pointer; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(1px);';
+				overlay.addEventListener('click', () => {
+					window.stopAlert();
+				});
+				if (document.body) {
+					document.body.appendChild(overlay);
+				} else {
+					window.addEventListener('DOMContentLoaded', () => {
+						document.body.appendChild(overlay);
+					});
+				}
+			}
+			return overlay;
+		};
+
+		window.enableAlerts = async () => {
+			if (!("Notification" in window)) {
+				console.log("This browser does not support desktop notifications");
+				return;
+			}
+
+			try {
+				const permission = await Notification.requestPermission();
+				console.log("Notification permission:", permission);
+
+				if (permission === "granted" && window.alertSound) {
+					window.alertSound.play();
+					window.alertSound.pause();
+				}
+			} catch (err) {
+				console.log("Error in enableAlerts:", err);
+			}
+		}
+
+		window.initSound = () => {
+			if (window.alertSound !== null) return;
+
+			window.alertSound = new Howl({
+				src: ['https://cdn.jsdelivr.net/gh/mohd7469/chart@main/3/beep.mp3'],
+				loop: true,
+				volume: 1,
+				html5: false,
+				autoplay: false,
+				onplayerror: () => {
+					window.alertSound.unlock();
+				}
+			});
+
+			window.enableAlerts().catch(err => console.error("EnableAlerts call failed:", err));
+
+			const overlay = window.getOrCreateOverlay();
+			if (overlay) {
+				overlay.style['background'] = 'rgba(0, 0, 0, 0)';
+
+				overlay.style.backgroundImage = 'url("https://ico.hugeicons.com/play-solid-rounded-512.webp")';
+				overlay.style.backgroundPosition = 'center';
+				overlay.style.backgroundRepeat = 'no-repeat';
+				overlay.style.backgroundSize = '200px';
+
+				overlay.style['backdrop-filter'] = 'blur(5px)';
+				overlay.style['display'] = 'block'; // to get user first interaction
+			}
+		};
+
+		window.playAlert = () => {
+			if (!window.alertSound) window.initSound();
+
+			if (!window.alertSound.playing()) {
+				window.alertSound.play();
+				const overlay = window.getOrCreateOverlay();
+				if (overlay) overlay.style.display = 'block';
+			}
+		};
+
+		window.stopAlert = () => {
+			if (window.alertSound) {
+				window.alertSound.stop();
+			}
+			const overlay = document.getElementById('alert-click-overlay');
+			if (overlay) overlay.style.display = 'none';
+		};
+
+		window.initSound();
+	</script>
+
+	<script type="module">
+		// @ts-nocheck
+
+		// Default Enabled Watchlist Volumn Column 
+		localStorage.setItem('widget.watchlist.view-state', JSON.stringify(["short_name", "last_price", "change", "change_percent", "volume"]));
+
+		// Chart Display Types 
+		const chartDisplayTypes = {
+			'bars': 0,
+			'candles': 1,
+			'line': 2,
+			'area': 3,
+			'renko': 4,
+			'heikin_ashi': 8,
+			'hollow_candles': 9,
+			'baseline': 10,
+			'hi_lo': 12,
+			'column': 13,
+			'volume_candles': 19,
+		};
+
+		// Global Chart Settings 
+		let config = window.TVConfig;
+
+		// Style Configuration
+		const styles = {
+			customCSS: `#documentation-toolbar-button {
+					all: unset;
+					position: relative;
+					color: #FFF;
+					font-size: 14px;
+					font-weight: 400;
+					line-height: 18px;
+					letter-spacing: 0.15408px;
+					padding: 5px 12px;
+					border-radius: 80px;
+				background: #2962FF;
+					cursor: pointer;
+				}
+			#documentation-toolbar-button:hover { background: #1E53E5; }
+			#documentation-toolbar-button:active { background: #1948CC; }
+				#theme-toggle { display: flex; flex-direction: row; align-items: center; gap: 12px; }
+				.switcher { display: inline-block; position: relative; width: 38px; height: 20px; vertical-align: middle; }
+				.switcher input { position: absolute; opacity: 0; width: 100%; height: 100%; z-index: 1; cursor: pointer; }
+				.switcher .thumb-wrapper { display: block; border-radius: 20px; position: relative; height: 100%; width: 100%; }
+				.switcher .track { position: absolute; left: 0; top: 0; width: 100%; height: 100%; border-radius: 20px; background-color: #a3a6af; }
+			#theme-switch:checked + .thumb-wrapper .track { background-color: #2962ff; }
+				.switcher .thumb { display: block; width: 14px; height: 14px; border-radius: 14px; background: #fff; transition: transform 250ms ease-out; transform: translate(3px, 3px); }
+				.switcher input:checked + .thumb-wrapper .thumb { transform: translate(21px, 3px); }
+				#tv_chart_container { height: 100%; width: 100%; }`
+		};
+
+		// Chart SVG
+		const codeSvg = (style) => `<svg style="${style}" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.93556 4.5061L3.43556 8.5061L3.00342 8.99998L3.43556 9.49386L6.93556 13.4939L8.06443 12.5061L4.99657 8.99998L8.06443 5.49386L6.93556 4.5061ZM11.0644 13.4939L14.5644 9.49386L14.9966 8.99998L14.5644 8.5061L11.0644 4.5061L9.93556 5.49386L13.0034 8.99998L9.93556 12.5061L11.0644 13.4939Z" fill="currentColor"/></svg>`;
+
+		// UTILITY FUNCTIONS
+
+		function getWatchList(config) {
+			const hasWatchList = config.watchList && config.watchList.length > 0;
+			if (hasWatchList) {
+				return config.watchList;
+			}
+			// return default symbols if no watchlist is present
+			return config.symbols.map(obj => obj.symbol);
+		}
+
+		function getLayoutValue(len) {
+			const layouts = {
+				1: ['s'],
+				2: ['2h', '2v'],
+				3: ['!3h', '3v', '3s', '3r', '2-1', '1-2'],
+				4: ['4', '4v', '4h', '4s', '4s-l', '1-3', '3-1', '2-2-l', '2-2-r', '2-2'],
+				5: ['1-4', '5h', '5v', '5s', '5s-l', '2-3', '3-2', '4-1', '2-3-l', '2-3-r'],
+				6: ['6', '6h', '6v', '6c', '2-4', '4-2', '4-3'],
+				7: ['7h', '7s'],
+				8: ['8', '8c', '8h', '8v'],
+			}
+
+			if (len <= 1) return 's';
+
+			if (layouts[len]) {
+				const arr = layouts[len];
+				const priorityIndex = arr.findIndex(item => item.startsWith('!'));
+
+				if (priorityIndex != -1) {
+					return arr[priorityIndex].replaceAll('!', ''); // return without ! sign
+				}
+
+				const index = Math.floor(Math.random() * arr.length);
+				return arr[index];
+			} else {
+				return len + 'h';
+			}
+		}
+
+		function getParameterByName(name) {
+			name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+			const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+			const results = regex.exec(location.search);
+			return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+		}
+
+		function formatVolume(vol) {
+			if (vol === undefined || vol === null || isNaN(vol)) return '-';
+			const v = parseFloat(vol);
+			if (v >= 1e9) return (v / 1e9).toFixed(2) + 'B';
+			if (v >= 1e6) return (v / 1e6).toFixed(2) + 'M';
+			if (v >= 1e3) return (v / 1e3).toFixed(2) + 'K';
+			return v.toFixed(0);
+		}
+
+		async function fetchNews() {
+			try {
+				const response = await fetch('https://demo-feed-data.tradingview.com/tv_news');
+				const xml = await response.text();
+				const parser = new DOMParser();
+				const dom = parser.parseFromString(xml, 'application/xml');
+				const items = dom.querySelectorAll('item');
+
+				return Array.from(items).map(item => {
+					const contentNode = Array.from(item.childNodes).find(el => el.tagName === 'content:encoded');
+					let decodedContent = '';
+					if (contentNode) {
+						const temp = document.createElement("div");
+						temp.innerHTML = contentNode.textContent ?? '';
+						decodedContent = temp.innerText;
+					}
+					return {
+						link: item.querySelector('link').textContent,
+						published: new Date(item.querySelector('pubDate').textContent).valueOf(),
+						shortDescription: decodedContent ? (decodedContent.slice(0, 150) + '...') : '',
+						provider: { id: 'tradingview', name: 'TradingView' },
+						title: item.querySelector('title').textContent,
+					};
+				});
+			} catch (e) {
+				console.error("News Fetch Error:", e);
+				return [];
+			}
+		}
+
+		function toggleAutoSwitchVisibility() {
+			if (!window.autoSwitchCheckboxEl || !window.tvWidget) return;
+
+			const chartCount = window.tvWidget.chartsCount();
+			const shouldShow = chartCount > 1;
+
+			// Use display: block/none to show/hide
+			window.autoSwitchCheckboxEl.style.display = shouldShow ? 'block' : 'none';
+		}
+
+		// MAIN APP INITIALIZATION
+
+		export async function initOnReady() {
+			const waitForTradingView = () => {
+				return new Promise((resolve) => {
+					const check = () =>
+						window.TradingView?.TradingViewDatafeed
+							? resolve()
+							: setTimeout(check, 100);
+
+					check();
+				});
+			};
+
+			await waitForTradingView();
+
+			class CustomDatafeed extends TradingView.TradingViewDatafeed {
+				constructor() {
+					super();
+					this._historyCache = new Map();
+					this._lastPriceMap = new Map(); // Optimization: Price change check
+					this.MAX_CACHE_SIZE = 2000; // Global limit for memory management
+				}
+
+				_mergeBars(existing, incoming) {
+					const map = new Map();
+
+					// Existing aur incoming bars ko map mein daalein (duplicates auto-handle ho jayenge)
+					existing.forEach(b => map.set(b.time, b));
+					incoming.forEach(b => map.set(b.time, b));
+
+					// Sort by time
+					let sortedBars = Array.from(map.values()).sort((a, b) => a.time - b.time);
+
+					// Memory Management: Sirf aakhri MAX_CACHE_SIZE bars rakhein
+					if (sortedBars.length > this.MAX_CACHE_SIZE) {
+						sortedBars = sortedBars.slice(-this.MAX_CACHE_SIZE);
+						console.log("Memory Cleaned: Only keeping last 2000 bars.");
+					}
+
+					return sortedBars;
+				}
+
+				_getChartData(chart, upto) {
+					return new Promise((resolve) => {
+						chart.exportData({
+							includeTime: false, // Time nai chahiye
+							includeSeries: false, // OHLC nai chahiye
+							includeStudies: true // Sirf indicators chahiye
+						}).then(result => {
+							const { data, schema } = result;
+
+							// Sirf aakhri 'upto' bars ka data slice karo
+							const startIdx = Math.max(0, data.length - upto);
+							const slicedData = data.slice(startIdx);
+
+							// Seedha map return karo, extra variables ki zaroorat nahi
+							const finalResults = slicedData.map(row => {
+								const indicators = {};
+								schema.forEach((s, i) => {
+									if (s.sourceType === 'study') {
+										// row[i] mein indicator ki value hai
+										indicators[s.sourceTitle] = row[i];
+									}
+								});
+								return { indicators };
+							});
+
+							resolve(finalResults);
+						}).catch(err => {
+							console.error("Error in getChartData:", err);
+							resolve([]);
+						});
+					});
+				}
+
+				getBars(symbolInfo, resolution, periodParams, onResult, onError) {
+					super.getBars(symbolInfo, resolution, periodParams, (bars, meta) => {
+						if (bars && bars.length > 0) {
+							const currentSymbol = symbolInfo.ticker;
+
+							// FIX: Symbol aur Resolution dono ko combine karke unique key banayein
+							const cacheKey = `${currentSymbol}_${resolution}`;
+
+							// Existing data fetch karein aur merge karein
+							const existingBars = this._historyCache.get(cacheKey) || [];
+							const mergedBars = this._mergeBars(existingBars, bars);
+
+							// Cache update karein
+							this._historyCache.set(cacheKey, mergedBars);
+
+							// console.log(`Cache updated for ${currentSymbol}. Total bars: ${mergedBars.length}`);
+
+							onResult(bars, meta);
+						} else {
+							onResult(bars, meta);
+						}
+					}, onError);
+				}
+
+				subscribeBars(symbolInfo, resolution, onTick, listenerGuid, onResetCacheNeededCallback) {
+					const currentSymbol = symbolInfo.ticker;
+					const currentInterval = resolution;
+					// FIX: Wahi unique key yahan bhi use karein
+					const cacheKey = `${currentSymbol}_${currentInterval}`;
+
+					const onCallback = (bar) => {
+						// Initial visibility based on current chart count
+						toggleAutoSwitchVisibility();
+
+						// TradingView ko update bhejein
+						onTick(bar);
+
+						// FIX: Cache se data fetch karne ke liye cacheKey use karein
+						let history = this._historyCache.get(cacheKey) || [];
+
+						if (history.length > 0) {
+							const lastBar = history[history.length - 1];
+
+							if (bar.time > lastBar.time) {
+								// 1. Nayi candle start hui hai
+								history.push(bar);
+
+								// Memory check for real-time
+								if (history.length > this.MAX_CACHE_SIZE) {
+									history.shift();
+								}
+							} else {
+								// 2. Maujooda candle update ho rahi hai (last bar update)
+								history[history.length - 1] = bar;
+							}
+						} else {
+							history.push(bar);
+						}
+
+						// Cache mein update save karein
+						this._historyCache.set(cacheKey, history);
+
+						// --- Real-time Indicators Sync ---
+						if (window.tvWidget) {
+							// Optimization: Only export data if price actually changed
+							const lastSentPrice = this._lastPriceMap.get(cacheKey);
+							if (lastSentPrice === bar.close) {
+								return;
+							}
+							this._lastPriceMap.set(cacheKey, bar.close);
+
+							const range = config.candleRange;
+							const chartIndex = config.symbols.findIndex(s => s.symbol === currentSymbol && s.interval === currentInterval);
+
+							if (chartIndex !== -1) {
+								const chart = window.tvWidget.chart(chartIndex);
+
+								this._getChartData(chart, range).then(indicatorResults => {
+									const historySlice = history.slice(-range);
+
+									// Index-based matching: sync history and indicator arrays
+									const mergedData = historySlice.map((hBar, index) => {
+										const iData = indicatorResults[index];
+										return {
+											...hBar,
+											indicators: (iData && iData.indicators) ? iData.indicators : {}
+										};
+									});
+
+									const payload = {
+										symbol: currentSymbol,
+										interval: currentInterval,
+										data: mergedData,
+										browserTime: Date.now() // For latency tracking
+									};
+
+
+									if (window.isAutoSwitchEnabled) {
+										// Chart auto switching logic
+										window.tvWidget.setActiveChart(chartIndex);
+									}
+
+									console.log("Payload:", payload);
+
+									// Global Event Dispatch
+									window.dispatchEvent(new CustomEvent('candleUpdates', {
+										detail: JSON.stringify(payload)
+									}));
+								});
+							}
+						}
+					};
+
+					super.subscribeBars(symbolInfo, resolution, onCallback, listenerGuid, onResetCacheNeededCallback);
+				}
+			}
+
+			const datafeed = new CustomDatafeed();
+
+			// Setup CSS
+			const cssBlob = new Blob([styles.customCSS], { type: "text/css" });
+			const cssBlobUrl = URL.createObjectURL(cssBlob);
+
+			const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+			const theme = getParameterByName('theme') || (isDark ? 'dark' : 'light');
+
+			// Initialize Widget
+			const defaultSymbol = config.symbols[0];
+			const widget = window.tvWidget = new TradingView.widget({
+				fullscreen: false,
+				autosize: true,
+				symbol: defaultSymbol.symbol,
+				interval: defaultSymbol.interval,
+				container: 'tv_chart_container',
+				datafeed: datafeed,
+				library_path: 'https://cdn.jsdelivr.net/gh/mohd7469/chart@main/3/webapp/charting_library/',
+				locale: getParameterByName('lang') || 'en',
+				custom_css_url: cssBlobUrl,
+				theme: theme,
+				disabled_features: [
+					'use_localstorage_for_settings',
+					'open_account_manager',
+					'dom_widget',
+					...(config?.disabledFeatures || [])
+				],
+				enabled_features: [
+					'study_templates',
+					'pre_post_market_sessions',
+					'show_symbol_logos',
+					'show_exchange_logos',
+					'seconds_resolution',
+					// 'custom_resolutions', // datafeed doesn't support this
+					'secondary_series_extend_time_scale',
+					// 'determine_first_data_request_size_using_visible_range',
+					'show_percent_option_for_right_margin',
+					'display_data_mode',
+					'items_favoriting',
+					'disable_resolution_rebuild',
+					'pre_post_market_price_line'
+				],
+				overrides: {
+					// "mainSeriesProperties.style": 1,
+					"mainSeriesProperties.showCountdown": true,
+					// 'mainSeriesProperties.sessionId': 'extended',
+				},
+				charts_storage_url: 'https://saveload.tradingview.com',
+				charts_storage_api_version: '1.1',
+				client_id: 'trading_platform_demo',
+				user_id: 'public_user',
+				widgetbar: {
+					details: true,
+					news: true,
+					watchlist: true,
+					datawindow: true,
+					watchlist_settings: {
+						default_symbols: getWatchList(config),
+					},
+				},
+				news_provider: async (symbol, callback) => {
+					// const newsItems = await fetchNews();
+					callback({ title: 'Market Insights', newsItems: [] });
+				},
+				broker_factory: (host) => new Brokers.BrokerDemo(host, datafeed),
+				broker_config: {
+					configFlags: {
+						supportNativeReversePosition: true,
+						supportClosePosition: true,
+						supportPLUpdate: true,
+						supportLevel2Data: false,
+						showQuantityInsteadOfAmount: true,
+						supportEditAmount: false,
+						supportOrderBrackets: true,
+						supportMarketBrackets: true,
+						supportPositionBrackets: true,
+						supportOrdersHistory: false,
+						supportMultipleExitLevels: true
+					},
+					durations: [
+						{ name: 'DAY', value: 'DAY' },
+						{ name: 'GTC', value: 'GTC' },
+					],
+				},
+			});
+
+			// Datafeed Status UI
+			datafeed.onSymbolChange = (symbol) => {
+				widget
+					.customSymbolStatus()
+					.symbol(symbol)
+					.setColor('#00BCD4')
+					.setVisible(true)
+					.setIcon(codeSvg(''))
+					.setTooltip('Connected')
+					.setDropDownContent([{
+						title: 'Demo Datafeed',
+						icon: codeSvg('background-color: rgba(0, 188, 212, 0.1); border-radius: 100%'),
+						content: ['Real-time data streaming active.']
+					}]);
+			};
+
+			// Header Buttons (only if header_widget is enabled)
+			const isHeaderDisabled = (config?.disabledFeatures || []).includes('header_widget');
+			if (!isHeaderDisabled) {
+				widget.headerReady().then(() => {
+					// Theme Toggle
+					const themeBtn = widget.createButton({ align: 'right' });
+					themeBtn.innerHTML = `<label style="cursor:pointer; display:flex; align-items:center; gap:8px;">
+					Dark Mode <div class="switcher">
+						<input type="checkbox" id="theme-switch" ${theme === 'dark' ? 'checked' : ''}>
+						<span class="thumb-wrapper"><span class="track"></span><span class="thumb"></span></span>
+					</div></label>`;
+					themeBtn.querySelector('#theme-switch').addEventListener('change', (e) => {
+						widget.changeTheme(e.target.checked ? 'dark' : 'light', { disableUndo: true });
+					});
+
+					// Checkbox for auto switching charts
+					const checkboxEl = widget.createButton();
+
+					// Button ki styling aur content set karein
+					checkboxEl.setAttribute('title', 'Toggle Auto Charts Switching');
+					checkboxEl.classList.add('auto-switch-container');
+
+					// HTML structure: Ek Label aur Checkbox insert karein
+					checkboxEl.innerHTML = `
+					<div style="display: flex; align-items: center; padding: 0 10px; cursor: pointer; height: 100%;">
+						<input type="checkbox" id="auto-switch-checkbox" style="cursor: pointer; margin-right: 5px;">
+						<label for="auto-switch-checkbox" style="cursor: pointer; user-select: none; font-size: 14px;">Auto Switch</label>
+					</div>
+				`;
+
+					const checkbox = checkboxEl.querySelector('#auto-switch-checkbox');
+					if (checkbox) {
+						checkbox.checked = window.isAutoSwitchEnabled;
+					}
+
+					// Jab user click kare, global window variable update karein
+					checkbox.addEventListener('change', (e) => {
+						window.isAutoSwitchEnabled = e.target.checked;
+					});
+
+					// Store reference for dynamic show/hide
+					window.autoSwitchCheckboxEl = checkboxEl;
+				});
+			}
+
+			async function syncConfigWithCharts() {
+				const chartCount = window.tvWidget.chartsCount(); // Pata karo abhi kitne charts khulay hain
+
+				for (let i = 0; i < chartCount; i++) {
+					const chart = window.tvWidget.chart(i);
+
+					const newSymbol = chart.symbol();
+					const newInterval = chart.resolution();
+
+					console.log(`Syncing Layout ${i}: ${newInterval} - ${newSymbol}`);
+
+					if (newSymbol) {
+						if (config.symbols[i]) {
+							// 1. Agar index pehle se mojood hai, toh sirf update karo (Merge)
+							config.symbols[i].symbol = newSymbol;
+							config.symbols[i].interval = newInterval;
+						} else {
+							console.log("Pushing new symbol");
+							// 2. Agar user ne naya layout select kiya (e.g. 3 se 4 charts), 
+							// toh naya object push karo
+							config.symbols.push({
+								symbol: newSymbol,
+								chartType: 'candles',
+								interval: newInterval,
+								indicators: [] // Naye chart ke liye empty indicators ya default rakho
+							});
+						}
+					}
+
+					// const watchlistApi = await window.tvWidget.watchList();
+					// const activeListId = watchlistApi.getActiveListId();
+					// if (activeListId) {
+					//     watchlistApi.updateList(activeListId, getWatchList(config));
+					// }
+				}
+
+				// 3. Agar user ne layout kam kar diya (e.g. 3 se 2), toh extra symbols hata do
+				if (config.symbols.length > chartCount) {
+					config.symbols = config.symbols.slice(0, chartCount);
+				}
+			}
+
+			let chartSubscribers = [];
+
+			function attachChartListeners() {
+				const chartCount = window.tvWidget.chartsCount();
+
+				// Pehle purane saare listeners ko dhang se khatam (Destroy) karo
+				chartSubscribers.forEach(sub => {
+					try {
+						const chart = window.tvWidget.chart(sub.index);
+						chart.onSymbolChanged().unsubscribe(sub.listener);
+						chart.onIntervalChanged().unsubscribe(sub.listener);
+					} catch (e) {
+						// Agar chart exist nahi karta (layout kam hua), toh ignore karein
+					}
+				});
+
+				// Array khali kar dein
+				chartSubscribers = [];
+
+				// Ab naye fresh listeners register karein
+				for (let i = 0; i < chartCount; i++) {
+					const chart = window.tvWidget.chart(i);
+
+					// Ek hi function reference use karein sync ke liye
+					const syncHandler = async () => {
+						await syncConfigWithCharts();
+					};
+
+					// Naye listeners lagayein
+					chart.onSymbolChanged().subscribe(null, syncHandler);
+					chart.onIntervalChanged().subscribe(null, syncHandler);
+
+					// Inhein save karein taaki baad mein destroy kar sakein
+					chartSubscribers.push({
+						index: i,
+						listener: syncHandler
+					});
+				}
+			}
+
+			widget.onChartReady(async () => {
+				// 1. Initial Layout set karein
+				const layout = config.symbols.length + 'h'; // getLayoutValue(config.symbols.length)
+				widget.setLayout(layout);
+
+				// 2. Initial Charts Setup (Symbols, Indicators etc.)
+				for (let i = 0; i < config.symbols.length; i++) {
+					try {
+						const chart = widget.chart(i);
+
+						if (chart) {
+							const { symbol, interval, chartType, indicators } = config.symbols[i];
+
+							chart.setSymbol(symbol, () => {
+								chart.setResolution(interval);
+								chart.setChartType(chartDisplayTypes[chartType]);
+								chart.applyOverrides({ "mainSeriesProperties.showCountdown": true });
+
+								if (indicators) {
+									// indicators.forEach(ind => {
+									// 	const inputs = ind.inputs || [];
+									// 	chart.createStudy(
+									// 		ind.name,
+									// 		false,    // forceOverlay
+									// 		false,    // lock
+									// 		inputs
+									// 	);
+									// });
+									Promise.all(
+										indicators.map(ind => {
+											const inputs = ind.inputs || [];
+											return chart.createStudy(
+												ind.name,
+												false,    // forceOverlay
+												false,    // lock
+												inputs
+											);
+										})
+									).then(() => {
+										const setPaneHeights = (attempts = 0, lastHeight = -1) => {
+											try {
+												const panes = chart.getPanes();
+												if (!panes || panes.length <= 1) return;
+
+												const totalHeight = panes.reduce((sum, p) => sum + p.getHeight(), 0);
+
+												// Retry if height is invalid or still changing (layout not settled)
+												if (totalHeight < 100 || totalHeight !== lastHeight) {
+													if (attempts < 15) setTimeout(() => setPaneHeights(attempts + 1, totalHeight), 400);
+													return;
+												}
+
+												let indHeight = 100;
+												let mainHeight = totalHeight - (panes.length - 1) * indHeight;
+
+												// Agar unlimited indicators lag jayein aur jagah kam parh jaye
+												if (mainHeight < 100) {
+													mainHeight = 100; // Main pane ko kam se kam 100px dena hai
+													indHeight = Math.floor((totalHeight - 100) / (panes.length - 1)); // Baaki jagah indicators me baant do
+												}
+
+												panes[0].setHeight(mainHeight);
+
+												// Wait for main pane to resize before sizing indicators
+												setTimeout(() => {
+													for (let p = 1; p < panes.length; p++) {
+														try { panes[p].setHeight(indHeight); } catch (e) { }
+													}
+												}, 600);
+											} catch (e) {
+												console.error("Error resizing panes:", e);
+											}
+										};
+
+										setTimeout(setPaneHeights, 800);
+									}).catch(err => console.error("Error creating studies:", err));
+								}
+							});
+
+							await new Promise(resolve => setTimeout(resolve, 1000));
+						}
+					} catch (err) {
+						console.error(`Error setting layout ${i}:`, err);
+					}
+				}
+
+				// 3. Attach listeners first time (Cleanup + Fresh Registration)
+				attachChartListeners();
+
+				// 4. LAYOUT CHANGE WATCHER
+				window.tvWidget.subscribe('layout_about_to_be_changed', () => {
+					setTimeout(() => {
+						syncConfigWithCharts(); // Pehle config update
+						attachChartListeners(); // Purane delete kar ke naye attach
+						console.log("Cleanup and re-sync successful.");
+					}, 800);
+				});
+			});
+		}
+
+		window.addEventListener('DOMContentLoaded', initOnReady, false);
+	</script>
+</head>
+
+<body style="margin: 0px">
+	<div class="tv-wrapper">
+		<div id="tv_chart_container" style="height: 100vh; width: 100vw;"></div>
+	</div>
+</body>
+
+</html>

@@ -1,0 +1,29 @@
+CORS PUBLIC-ASSET FIX v7 - 30 OCTOBER 2026
+
+Public /assets JavaScript, CSS and fonts are served before credentialed API CORS.
+GET/HEAD use public, non-credentialed CORS, including preview/opaque origins.
+API/auth/Socket.IO remain restricted to the configured allowlist. Rejected API
+origins return 403 with a sanitized origin label, rather than a generic 500.
+Missing/private/traversal asset paths never return SPA HTML or filesystem details.
+The previous deployed logs did not identify the rejected request's actual Origin.
+
+Includes ALL v6 fixes: WhatsApp settings saving/deleted setup filters; vector text
+and worker handover for IMAGE/PDF; saved watcher restart recovery; free UI, chart
+CSP, polling, async LiteSpeed startup and private persistent SQLite storage.
+Confirmation-link dispatch, strategy rules, financial calculations, execution
+guards and TP/SL order code are unchanged from v6.
+
+DEPLOY THE SAME EXISTING APP. Preserve current environment values and secrets.
+APP_ORIGIN must be https://cp.shopshealth.com for this domain. Do not whitelist
+null or arbitrary origins for the private API. No database or session is bundled.
+
+Verification: 17 isolated release checks passed, including public JS/CSS bytes
+for same/foreign/null/no Origin, protected API rejection, LiteSpeed startup,
+SQLite persistence after restart, saved watcher resume and IMAGE/PDF rendering.
+No production deployment, trade, message or saved-setting change was performed
+while packaging. Actual receiving-phone approval/media delivery still needs
+verification on the newly deployed build.
+
+Shared/cloud hosting does not guarantee an always-running background worker.
+Saved-state recovery resumes on process startup; continuous service needs a
+hosting environment that supports persistent workers.

@@ -1,0 +1,68 @@
+JARVIS - CORS ASSET FIX v7 + WHATSAPP + WATCHER RESTART + ALL PREVIOUS FIXES - 30 OCTOBER 2026
+
+UPDATE THE SAME EXISTING HOSTINGER APP: https://cp.shopshealth.com
+Framework: Express. Package manager: npm. Entry file: app.js.
+Keep Node 24.x. Install: npm ci. Build: npm run build.
+Output directory: dist, if asked. Root directory: ./.
+
+PRESERVE YOUR EXISTING DATA
+Back up the CURRENT private Jarvis data directory before redeployment.
+Keep all EXISTING environment values, especially JARVIS_INSTANCE,
+JARVIS_DATA_DIR (if set), AUTH_SECRET, ENCRYPTION_KEY and ENCRYPTION_IV.
+If JARVIS_DATA_DIR is unset, leave it unset. Do not generate replacement secrets,
+run setup-env.mjs, create a replacement app, import duplicates or remove sessions.
+This ZIP has no SQLite database, credentials, WhatsApp sessions or node_modules.
+The deployment does not overwrite saved strategies or migrate their settings.
+
+NEW: SAVE WHATSAPP SETTINGS WITH PREVIOUSLY DELETED SETUP FILTERS
+Previously selected/deleted IDs can remain in saved preferences even when the
+old UI no longer displays those setups. The updated save validation accepts
+retained deleted IDs without blocking unrelated/current selections. It keeps
+their restrictive filter instead of silently changing it to ALL setups.
+The new UI shows Unavailable saved setup entries; uncheck them explicitly if
+desired. Unchecking ALL setup selections deliberately includes all setups.
+New unknown/foreign IDs are rejected. A previously stored ID that now belongs
+to another owner is rejected. Actual setup document IDs remain authoritative.
+No database migration or automatic rewriting of saved preferences is included.
+After deployment refresh the page, review Alerts > Setup filter and save your
+intended changes. A template-only edit does not submit unrelated filter fields.
+
+NEW: RESTORE THE SAVED WATCHER STATE AFTER SERVER RESTART
+The launcher enables WATCHER_RESUME_SAVED=true unless explicitly set otherwise.
+WATCHER_ENABLED remains false: this does NOT start all accounts indiscriminately.
+Only users with an explicit saved paused=false and boolean monitoring mode resume.
+Paused, fresh and malformed profiles stay inactive. Auto, Confirmation and
+Monitoring Only keep their saved behavior. Existing global controls, approval
+requirements, cooldown, execution counters, margin, leverage and TP/SL are kept.
+Restart does not itself submit an order. Normal market updates and all existing
+execution guards determine subsequent actions. Previously RUNNING Auto setups
+may therefore execute on genuine matches without opening the website.
+
+No new environment variable needs to be added for normal saved-state recovery.
+If WATCHER_RESUME_SAVED is explicitly false, retain it only if you deliberately
+want the previous monitoring-only boot behavior.
+
+VERIFY AFTER REDEPLOYMENT
+1. Redeploy this archive on the SAME app and restart that app once.
+2. Runtime logs should show:
+   [Hostinger] ... Saved watcher restart resume: enabled.
+   [Watcher] Restart resume: N monitoring, M saved execution, S skipped, F failed.
+3. Verify previous running/paused states and a fresh heartbeat. Existing paused
+   profiles must remain paused. No force trigger or manual order is needed.
+4. WhatsApp > Recipients should show App and background renderer match.
+   Send clearly labelled new IMAGE/PDF samples to an existing recipient if needed.
+5. Check the existing accounts/strategies/data after redeployment. Preserve data
+   paths and secrets rather than trying to fix missing data by creating new ones.
+
+ALL PREVIOUS FIXES RETAINED
+WhatsApp legacy-worker handover and glyph-outline rendering for IMAGE/PDF;
+renderer diagnostics; free UI components replacing DevExtreme; chart CSP;
+in-process watcher execution; HTTP polling; LiteSpeed-compatible async startup;
+private persistent SQLite paths. Strategy detection, exchange execution, TP/SL and PnL calculation source remain
+unchanged. Changes from v5: WhatsApp settings UI/save validation; v7 also separates public asset CORS from private API CORS. See CORS-ASSET-FIX.txt.
+
+HOSTING LIMITATION
+This fixes recovery when the Node process starts. It does not turn Hostinger
+shared/cloud hosting into an always-running background-worker service. For
+continuous unattended operation, use hosting that supports persistent workers.
+No production deployment or real trade was performed while creating this ZIP.
